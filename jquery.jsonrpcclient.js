@@ -199,6 +199,11 @@
   };
 
   /**
+   * Queue to save messages delivered when websocket is not ready
+   */
+  $.JsonRpcClient.q = [];
+
+  /**
    * Internal handler to dispatch a JRON-RPC request through a websocket.
    *
    * @fn _wsCall
@@ -208,14 +213,22 @@
     var request_json = $.toJSON(request);
 
     if (socket.readyState < 1) {
-      // The websocket is not open yet; we have to set sending of the message in onopen.
-      self = this; // In closure below, this is set to the WebSocket.  Use self instead.
+	// The websocket is not open yet; we have to set sending of the message in onopen.
+	self = this; // In closure below, this is set to the WebSocket.  Use self instead.
 
-      // Set up sending of message for when the socket is open.
-      socket.onopen = function() {
-        // Send the request.
-        socket.send(request_json);
-      };
+	$.JsonRpcClient.q.push(request_json);
+
+	// Set up sending of message for when the socket is open.
+	if (!socket.onopen) {
+	    socket.onopen = function() {
+		var req;
+		// Send the requests.
+		while (req = $.JsonRpcClient.q.pop()) {
+		    socket.send(req);
+		}
+	    };
+	}
+
     }
     else {
       // We have a socket and it should be ready to send on.
