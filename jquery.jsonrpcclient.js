@@ -353,7 +353,7 @@
         var call = this._requests[i];
         var success_cb = ('success_cb' in call) ? call.success_cb : undefined;
         var error_cb   = ('error_cb'   in call) ? call.error_cb   : undefined;
-        this._wsCall(socket, call.request, success_cb, error_cb);
+        self.jsonrpcclient._wsCall(socket, call.request, success_cb, error_cb);
       }
       if (typeof all_done_cb === 'function') all_done_cb(result);
       return;
